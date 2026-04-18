@@ -17,7 +17,7 @@ user: Internal User {
   icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
 }
 
-ui: Chat UI {
+ui: Next.js Chat UI {
   class: card
   icon: https://cdn.simpleicons.org/nextdotjs
 }
@@ -58,14 +58,16 @@ crm: CRM API {
   icon: https://cdn.simpleicons.org/hubspot
 }
 
-user -> ui
-ui -> agent.orchestrator
-agent.orchestrator -> agent.memory
-agent.memory -> db
-agent.orchestrator -> mcp.reads
-agent.orchestrator -> mcp.writes
-mcp.writes -> ui: "Confirm draft"
-mcp.reads -> crm
-mcp.writes -> crm: "On user confirm"
-mcp.reads -> db
-mcp.writes -> db
+user -> ui: "1. Message"
+ui -> agent.orchestrator: "2. Request"
+agent.orchestrator -> agent.memory: "3. Load context"
+agent.memory -> db: "4. Session + user state"
+agent.orchestrator -> mcp.reads: "5. Tool call (fetch)"
+mcp.reads -> crm: "6. GET /contacts"
+agent.orchestrator -> mcp.writes: "7. Tool call (mutate)"
+mcp.writes -> db: "8. Save draft"
+mcp.writes -> ui: "9. Confirm?"
+mcp.writes -> crm: "10. On confirm" {
+  style.stroke: "#059669"
+  style.bold: true
+}
