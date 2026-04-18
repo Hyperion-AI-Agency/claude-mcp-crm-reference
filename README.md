@@ -7,20 +7,25 @@
 ![License](https://img.shields.io/badge/license-MIT-3b82f6)
 ![Built by Hyperion AI](https://img.shields.io/badge/built_by-Hyperion_AI-0f172a)
 ![Stack](https://img.shields.io/badge/stack-Claude_·_MCP_·_Next.js-64748b)
-
-[View Design Doc (PDF)](DESIGN_DOC.pdf) · [Architecture](docs/architecture.md)
+![GitHub Repo stars](https://img.shields.io/github/stars/Hyperion-AI-Agency/ai-crm-agent?style=flat&color=fbbf24)
+![Last Commit](https://img.shields.io/github/last-commit/Hyperion-AI-Agency/ai-crm-agent?color=3b82f6)
 
 ---
 
 <img src="docs/architecture.svg" width="100%" alt="Architecture" />
 
+[Design Doc](DESIGN_DOC.pdf) · [Architecture](docs/architecture.md) · [Quickstart](#quick-start) · [Book a call](https://cal.com/vitalijus-alsauskas/project-request?overlayCalendar=true)
+
 </div>
+
+> [!NOTE]
+> This is a reference architecture shared as a starting point, not a production service. Fork it, swap the CRM adapter for your stack, ship faster.
 
 ## What this is
 
-A production pattern for teams extending Claude into CRM-aware chatbot capabilities. Demonstrates how to expose CRM reads and writes as MCP tools, layer memory across session + user + account, and gate every write behind user confirmation.
+A full-stack Claude agent for teams extending chatbots into CRM territory. Exposes CRM reads and writes as MCP tools, composes three memory layers (session + user + account) at prompt time, and gates every write behind explicit user confirmation.
 
-Claude + CRM chatbots usually fail in two predictable ways: they lose memory across sessions (users re-explain context constantly) or they write to CRM without proper review (surprise records). This reference shows the pattern that works.
+Claude + CRM chatbots usually fail in two predictable ways: they lose memory across sessions (users re-explain context constantly) or they write to CRM without proper review (surprise records on Monday morning). This agent is built around the pattern that avoids both.
 
 ## Why this exists
 
@@ -35,7 +40,6 @@ Claude + CRM chatbots usually fail in two predictable ways: they lose memory acr
 **[Design Doc (PDF)](DESIGN_DOC.pdf)** — Branded system design with diagrams, tool choices, phases, and risks.
 
 **[Architecture](docs/architecture.md)** — Layered view with component responsibilities and design decisions.
-
 
 **[Flow Diagram](docs/flow.svg)** — Sequence diagram of the confirmation-gated write path.
 
@@ -58,6 +62,9 @@ make dev
 ```
 
 Runs install + docker + migrations + dev server in one command. See `make help` for the full list.
+
+> [!TIP]
+> Prefer not to run this yourself? [Book a 30-minute scoping call](https://cal.com/vitalijus-alsauskas/project-request?overlayCalendar=true) and I'll map this to your CRM and agent setup.
 
 ## Who this is for
 
@@ -92,7 +99,7 @@ Software dev from Lithuania, worked at IBM, living in Vietnam. Building enterpri
 
 ### Request a project
 
-Free 30-minute scoping session for teams extending Claude into CRM territory.
+Send me your project brief. I reply within 24 hours.
 
 **[cal.com/vitalijus-alsauskas/project-request →](https://cal.com/vitalijus-alsauskas/project-request?overlayCalendar=true)**
 

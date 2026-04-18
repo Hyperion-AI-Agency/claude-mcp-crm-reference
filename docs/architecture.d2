@@ -1,29 +1,50 @@
 # AI CRM Agent - Architecture
-# Render: d2 --theme 303 --sketch --pad 120 --scale 1.5 --layout elk
+# Render: d2 --theme 0 --pad 120 --scale 1.5 --layout elk docs/architecture.d2 docs/architecture.svg
+
+vars: {
+  d2-config: {
+    theme-id: 0
+  }
+}
 
 direction: right
 grid-columns: 2
-grid-gap: 80
+grid-gap: 60
 
 classes: {
   card: {
     width: 160
     height: 160
+    style.font-size: 14
+  }
+  zone: {
+    style.fill: "#f8fafc"
+    style.stroke: "#cbd5e1"
+    style.stroke-width: 2
+    style.border-radius: 12
+    style.shadow: true
+    style.font-size: 13
+    style.bold: true
   }
 }
 
-user: Internal User {
-  class: card
-  icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
+client_zone: "Client" {
+  class: zone
+  style.fill: "#f0f9ff"
+
+  user: Internal User {
+    class: card
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
+  }
+  ui: Next.js Chat UI {
+    class: card
+    icon: https://cdn.simpleicons.org/nextdotjs
+  }
 }
 
-ui: Next.js Chat UI {
-  class: card
-  icon: https://cdn.simpleicons.org/nextdotjs
-}
-
-agent: Agent Runtime {
-  style.bold: true
+agent_zone: "Agent Runtime" {
+  class: zone
+  style.fill: "#eef2ff"
 
   orchestrator: Claude Orchestrator {
     class: card
@@ -33,41 +54,46 @@ agent: Agent Runtime {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/brain.svg
   }
-}
-
-mcp: MCP Server {
-  style.bold: true
-
-  reads: Read Tools {
+  reads: MCP Read Tools {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/eye.svg
   }
-  writes: Write Tools {
+  writes: MCP Write Guardrail {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/shield-check.svg
   }
 }
 
-db: Postgres {
-  class: card
-  icon: https://cdn.simpleicons.org/postgresql
+data_zone: "Data" {
+  class: zone
+  style.fill: "#ecfdf5"
+
+  db: Postgres + pgvector {
+    class: card
+    icon: https://cdn.simpleicons.org/postgresql
+  }
 }
 
-crm: CRM API {
-  class: card
-  icon: https://cdn.simpleicons.org/hubspot
+external_zone: "CRM" {
+  class: zone
+  style.fill: "#fef3c7"
+
+  crm: HubSpot / Salesforce {
+    class: card
+    icon: https://cdn.simpleicons.org/hubspot
+  }
 }
 
-user -> ui: "1. Message"
-ui -> agent.orchestrator: "2. Request"
-agent.orchestrator -> agent.memory: "3. Load context"
-agent.memory -> db: "4. Session + user state"
-agent.orchestrator -> mcp.reads: "5. Tool call (fetch)"
-mcp.reads -> crm: "6. GET /contacts"
-agent.orchestrator -> mcp.writes: "7. Tool call (mutate)"
-mcp.writes -> db: "8. Save draft"
-mcp.writes -> ui: "9. Confirm?"
-mcp.writes -> crm: "10. On confirm" {
+client_zone.user -> client_zone.ui: "1. Message"
+client_zone.ui -> agent_zone.orchestrator: "2. Request"
+agent_zone.orchestrator -> agent_zone.memory: "3. Load context"
+agent_zone.memory -> data_zone.db: "4. Session + user state"
+agent_zone.orchestrator -> agent_zone.reads: "5. Tool call (fetch)"
+agent_zone.reads -> external_zone.crm: "6. GET /contacts"
+agent_zone.orchestrator -> agent_zone.writes: "7. Tool call (mutate)"
+agent_zone.writes -> data_zone.db: "8. Save draft"
+agent_zone.writes -> client_zone.ui: "9. Confirm?"
+agent_zone.writes -> external_zone.crm: "10. On confirm" {
   style.stroke: "#059669"
   style.bold: true
 }
