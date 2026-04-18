@@ -12,7 +12,7 @@ classes: {
   }
 }
 
-user: "Internal User" {
+user: Internal User {
   class: card
   icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
 }
@@ -22,7 +22,7 @@ ui: Chat UI {
   icon: https://cdn.simpleicons.org/nextdotjs
 }
 
-agent: "Agent Runtime" {
+agent: Agent Runtime {
   style.bold: true
 
   orchestrator: Claude Orchestrator {
@@ -33,13 +33,9 @@ agent: "Agent Runtime" {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/brain.svg
   }
-  guard: Write Guardrail {
-    class: card
-    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/shield-check.svg
-  }
 }
 
-mcp: "MCP Server" {
+mcp: MCP Server {
   style.bold: true
 
   reads: Read Tools {
@@ -48,21 +44,13 @@ mcp: "MCP Server" {
   }
   writes: Write Tools {
     class: card
-    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/pencil.svg
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/shield-check.svg
   }
 }
 
-data: "Data Layer" {
-  style.bold: true
-
-  memory_db: Memory + Drafts {
-    class: card
-    icon: https://cdn.simpleicons.org/postgresql
-  }
-  audit: Audit Log {
-    class: card
-    icon: https://icons.terrastruct.com/aws%2FStorage%2FAmazon-Simple-Storage-Service-S3.svg
-  }
+db: Postgres {
+  class: card
+  icon: https://cdn.simpleicons.org/postgresql
 }
 
 crm: CRM API {
@@ -73,12 +61,11 @@ crm: CRM API {
 user -> ui
 ui -> agent.orchestrator
 agent.orchestrator -> agent.memory
-agent.memory -> data.memory_db
+agent.memory -> db
 agent.orchestrator -> mcp.reads
 agent.orchestrator -> mcp.writes
-agent.orchestrator -> agent.guard
-agent.guard -> ui: "Confirm draft"
+mcp.writes -> ui: "Confirm draft"
 mcp.reads -> crm
-mcp.writes -> crm: "On confirm"
-mcp.reads -> data.audit
-mcp.writes -> data.audit
+mcp.writes -> crm: "On user confirm"
+mcp.reads -> db
+mcp.writes -> db
