@@ -133,7 +133,7 @@
     "@playwright/test": "^1.49.0",
     "cypress": "^15.7.0",
     "drizzle-kit": "^0.31.7",
-    "eslint": "^9.39.1",
+    "eslint": "^10.2.1",
     "eslint-config-next": "^15.0.0",
     "jsdom": "^25.0.1",
     "tailwindcss": "^4.1.17",
