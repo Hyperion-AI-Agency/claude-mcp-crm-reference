@@ -38,7 +38,7 @@ catalogs:
     "react-moveable": ^0.56.0
     "react-resizable-panels": ^3.0.2
     recharts: ^2.15.3
-    glob: ^11.0.3
+    glob: ^13.0.6
     "server-only": ^0.0.1
 
   # React ecosystem
