@@ -30,6 +30,10 @@ Every CRM capability the agent needs is exposed as an MCP tool. Read tools flow 
 
 ## Data Flow
 
+![Conversation Flow](docs/flow.svg)
+
+Source: [`docs/flow.d2`](docs/flow.d2)
+
 ### Read flow
 
 1. User message hits the chat UI, streams to agent
