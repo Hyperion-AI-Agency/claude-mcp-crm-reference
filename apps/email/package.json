@@ -21,6 +21,6 @@
     "@types/react": "catalog:react-v19",
     "next": "catalog:nextjs-v15",
     "typescript": "catalog:",
-    "@react-email/preview-server": "4.2.8"
+    "@react-email/preview-server": "5.2.10"
   }
 }
