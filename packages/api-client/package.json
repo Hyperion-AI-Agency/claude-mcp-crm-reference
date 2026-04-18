@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@tooling/typescript-config": "workspace:*",
-    "orval": "^7.16.1"
+    "orval": "^8.8.0"
   },
   "prettier": "@tooling/prettier-config"
 }
