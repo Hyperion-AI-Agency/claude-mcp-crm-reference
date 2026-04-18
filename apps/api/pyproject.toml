@@ -32,7 +32,7 @@ openai = ">=1.68.2"
 numpy = "^2.0.0"
 copilotkit = "0.1.60"
 celery = "^5.4.0"
-redis = "^5.2.0"
+redis = ">=5.2,<8.0"
 httpx = "^0.28.1"
 pyjwt = {extras = ["crypto"], version = "^2.10.0"}
 itsdangerous = "^2.2.0"
