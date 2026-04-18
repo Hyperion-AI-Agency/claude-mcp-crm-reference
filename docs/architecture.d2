@@ -4,51 +4,57 @@
 direction: down
 
 user: "Internal User" {
-  shape: person
+  icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
 }
 
 ui: Chat UI {
-  style.font-size: 18
+  icon: https://cdn.simpleicons.org/nextdotjs
 }
 
 agent: "Agent Runtime" {
-  style.font-size: 18
   style.bold: true
 
-  orchestrator: Claude Orchestrator
-  memory: Memory Manager
-  guard: Write Guardrail
+  orchestrator: Claude Orchestrator {
+    icon: https://cdn.simpleicons.org/anthropic
+  }
+  memory: Memory Manager {
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/brain.svg
+  }
+  guard: Write Guardrail {
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/shield-check.svg
+  }
 }
 
 mcp: "MCP Server" {
-  style.font-size: 18
   style.bold: true
 
-  reads: "Read Tools\n(get, search, history)"
-  writes: "Write Tools\n(confirmation-gated)"
+  reads: "Read Tools\n(get, search, history)" {
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/eye.svg
+  }
+  writes: "Write Tools\n(confirmation-gated)" {
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/pencil.svg
+  }
 }
 
 data: "Data Layer" {
-  style.font-size: 18
   style.bold: true
 
   memory_db: "Memory + Drafts" {
-    shape: cylinder
+    icon: https://cdn.simpleicons.org/postgresql
   }
   audit: "Immutable Audit Log" {
-    shape: cylinder
+    icon: https://icons.terrastruct.com/aws%2FStorage%2FAmazon-Simple-Storage-Service-S3.svg
   }
 }
 
 external: "External" {
-  style.font-size: 18
   style.bold: true
 
   claude: Anthropic Claude {
-    shape: cloud
+    icon: https://cdn.simpleicons.org/anthropic
   }
   crm: CRM API {
-    shape: cloud
+    icon: https://cdn.simpleicons.org/hubspot
   }
 }
 

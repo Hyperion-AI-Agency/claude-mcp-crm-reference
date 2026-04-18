@@ -3,12 +3,24 @@
 
 shape: sequence_diagram
 
-user: User
-ui: Chat UI
-agent: Agent
-claude: Claude
-mcp: MCP Server
-crm: CRM API
+user: User {
+  icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
+}
+ui: Chat UI {
+  icon: https://cdn.simpleicons.org/nextdotjs
+}
+agent: Agent {
+  icon: https://cdn.simpleicons.org/fastapi
+}
+claude: Claude {
+  icon: https://cdn.simpleicons.org/anthropic
+}
+mcp: MCP Server {
+  icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/plug.svg
+}
+crm: CRM API {
+  icon: https://cdn.simpleicons.org/hubspot
+}
 
 user -> ui: "1. Mark Acme as closed-won"
 ui -> agent: "2. Message + memory"
