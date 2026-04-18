@@ -6,7 +6,7 @@ catalogs:
   # Common utilities and core dependencies
   default:
     typescript: ^5.8.3
-    eslint: ^9.28.0
+    eslint: ^10.2.1
     prettier: ^3.5.3
     "@ianvs/prettier-plugin-sort-imports": ^4.1.1
     zod: ^4.0.14
