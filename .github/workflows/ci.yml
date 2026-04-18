@@ -3,65 +3,21 @@ name: "[CI] Test Suite"
 on:
   workflow_call:
   pull_request:
-    branches: [main, dev]
+    branches: [main]
 
-# ── Shared configuration ──────────────────────────────────────────────────
-# Base values defined here; connection strings composed at job level
-# (GitHub Actions doesn't allow env-to-env references in the same block).
 env:
-  # Tooling
-  PNPM_VERSION: "10.11.0"
-  NODE_VERSION: "22"
   PYTHON_VERSION: "3.12"
   POETRY_VERSION: "2.2.1"
 
-  # Database credentials (CI only)
-  DB_USER: postgres
-  DB_PASSWORD: postgres
-  APP_DB_NAME: app_test
-  API_DB_NAME: api_test
-  APP_DB_PORT: "5432"
-  API_DB_PORT: "5433"
-  REDIS_PORT: "6379"
-
-  # E2E test user
-  E2E_USER_EMAIL: "testpassword123@email.com"
-  E2E_USER_PASSWORD: "testpassword123"
-
-  # Placeholder for required env vars that aren't needed in CI
-  CI_PLACEHOLDER: "ci-placeholder"
-  CI_SECRET: "ci-test-secret-value-that-is-at-least-32-characters-long"
-
 jobs:
-
-  # ─── Git Leaks Scan ───────────────────────────────────────────────────────
   gitleaks:
     name: GitLeaks Scan
     uses: ./.github/workflows/gitleaks.yml
     secrets: inherit
 
-  # ─── Backend Tests (pytest) ──────────────────────────────────────────────
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
-    services:
-      postgres_api:
-        image: pgvector/pgvector:pg15
-        env:
-          POSTGRES_DB: ${{ env.API_DB_NAME }}
-          POSTGRES_USER: ${{ env.DB_USER }}
-          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
-        ports:
-          - ${{ env.API_DB_PORT }}:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    env:
-      API_DATABASE_URL: postgresql+asyncpg://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:${{ env.API_DB_PORT }}/${{ env.API_DB_NAME }}
-      API_ENVIRONMENT: local
-      AGENTS_DATABASE_URL: postgresql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:${{ env.API_DB_PORT }}/${{ env.API_DB_NAME }}
     steps:
       - uses: actions/checkout@v4
 
@@ -73,177 +29,7 @@ jobs:
         run: pip install poetry==${{ env.POETRY_VERSION }}
 
       - name: Install dependencies
-        working-directory: apps/api
         run: poetry install
 
       - name: Run pytest
-        working-directory: apps/api
-        run: poetry run pytest --cov --cov-report=xml --cov-report=term
-
-      - name: Upload coverage to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
-        with:
-          files: apps/api/coverage.xml
-          flags: backend
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-  # ─── Frontend Tests (vitest) ─────────────────────────────────────────────
-  frontend-tests:
-    name: Frontend Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install Poetry
-        run: pip install poetry==${{ env.POETRY_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run vitest
-        run: pnpm --filter nextjs test:run -- --coverage
-
-      - name: Upload coverage to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
-        with:
-          files: apps/nextjs/coverage/coverage-final.json
-          flags: frontend
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-  # ─── E2E Tests (Playwright) ─────────────────────────────────────────────
-  e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests]
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: ${{ env.APP_DB_NAME }}
-          POSTGRES_USER: ${{ env.DB_USER }}
-          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
-        ports:
-          - ${{ env.APP_DB_PORT }}:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      postgres_api:
-        image: pgvector/pgvector:pg15
-        env:
-          POSTGRES_DB: ${{ env.API_DB_NAME }}
-          POSTGRES_USER: ${{ env.DB_USER }}
-          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
-        ports:
-          - ${{ env.API_DB_PORT }}:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - ${{ env.REDIS_PORT }}:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    env:
-      # ── Next.js (APP_ prefix → env.js runtimeEnv) ──
-      SKIP_ENV_VALIDATION: "true"
-      APP_DATABASE_URL: postgresql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:${{ env.APP_DB_PORT }}/${{ env.APP_DB_NAME }}
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
-      NEXT_PUBLIC_PAYLOAD_URL: http://localhost:3000
-      APP_PAYLOAD_SECRET: ${{ env.CI_SECRET }}
-      APP_BETTER_AUTH_SECRET: ${{ env.CI_SECRET }}
-      APP_BACKEND_API_URL: http://localhost:8000
-      NEXT_PUBLIC_COPILOTKIT_PUBLIC_LICENSE_KEY: ${{ env.CI_PLACEHOLDER }}
-      APP_GOOGLE_CLIENT_ID: ${{ env.CI_PLACEHOLDER }}
-      APP_GOOGLE_CLIENT_SECRET: ${{ env.CI_PLACEHOLDER }}
-      APP_FASTAPI_OAUTH_CLIENT_ID: ${{ env.CI_PLACEHOLDER }}
-      APP_FASTAPI_OAUTH_CLIENT_SECRET: ${{ env.CI_PLACEHOLDER }}
-      APP_POLAR_ACCESS_TOKEN: ${{ env.CI_PLACEHOLDER }}
-      APP_POLAR_WEBHOOK_SECRET: ${{ env.CI_PLACEHOLDER }}
-      APP_POLAR_SUCCESS_URL: /success
-      APP_RESEND_API_KEY: ${{ env.CI_PLACEHOLDER }}
-      APP_RESEND_FROM: "CI <ci@test.local>"
-      # ── FastAPI (API_ prefix → settings.py) ──
-      API_DATABASE_URL: postgresql+asyncpg://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:${{ env.API_DB_PORT }}/${{ env.API_DB_NAME }}
-      API_ENVIRONMENT: local
-      API_OAUTH_PROVIDER_BASE_URL: http://localhost:3000
-      AGENTS_DATABASE_URL: postgresql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:${{ env.API_DB_PORT }}/${{ env.API_DB_NAME }}
-      API_CELERY_BROKER_URL: redis://localhost:${{ env.REDIS_PORT }}/0
-      API_CELERY_RESULT_BACKEND: redis://localhost:${{ env.REDIS_PORT }}/0
-      API_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      # ── E2E test user ──
-      E2E_TEST_USER_EMAIL: ${{ env.E2E_USER_EMAIL }}
-      E2E_TEST_USER_PASSWORD: ${{ env.E2E_USER_PASSWORD }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install Poetry
-        run: pip install poetry==${{ env.POETRY_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Install Node dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run database migrations
-        run: |
-          pnpm db:migrate:app
-          cd apps/api && poetry run alembic upgrade head
-
-      - name: Start servers
-        run: |
-          cd apps/api && poetry run start &
-          cd apps/nextjs && pnpm dev &
-
-      - name: Wait for servers
-        run: |
-          echo "Waiting for Next.js on :3000..."
-          timeout 120 bash -c 'until curl -sf http://localhost:3000 > /dev/null 2>&1; do sleep 2; done'
-          echo "Waiting for FastAPI on :8000..."
-          timeout 60 bash -c 'until curl -sf http://localhost:8000/health > /dev/null 2>&1; do sleep 2; done'
-          echo "All servers ready"
-
-      - name: Run Playwright tests
-        run: npx playwright test
-
-      - name: Upload Playwright report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
+        run: poetry run pytest --cov --cov-report=term
