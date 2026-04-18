@@ -1,83 +1,25 @@
-# Claude + MCP + CRM - Sequence Diagram
-# Render: d2 --theme 200 --layout dagre docs/flow.d2 docs/flow.svg
-
-title: Claude + MCP + CRM - Conversation Flow {
-  near: top-center
-  shape: text
-  style.font-size: 28
-  style.bold: true
-}
+# AI CRM Agent - Conversation Flow (Write Path)
+# Render: d2 --theme 303 --sketch --pad 120 --scale 1.5 --layout dagre
 
 shape: sequence_diagram
 
 user: User
 ui: Chat UI
-agent: Agent Orchestrator
-memory: Memory Manager
-claude: Anthropic Claude
+agent: Agent
+claude: Claude
 mcp: MCP Server
 crm: CRM API
-db: Postgres
-audit: Audit Log
 
-# Load context
-user -> ui: "1. \"What's happening with Acme?\""
-ui -> agent: "2. Message + user_id"
-agent -> memory: "3. Load conversation history"
-memory -> db: "4. SELECT last N turns"
-memory -> agent: "5. Context payload"
-
-# Call Claude with tools
-agent -> claude: "6. Prompt + MCP tool schema + memory"
-
-# Claude decides to call a tool
-claude -> agent: "7. Tool call: search_contacts(\"Acme\")"
-agent -> mcp: "8. Invoke search_contacts"
-mcp -> crm: "9. GET /contacts?q=Acme"
-crm -> mcp: "10. Contact records"
-mcp -> audit: "11. Log tool call + result"
-mcp -> agent: "12. Tool result"
-
-# Claude decides to call another tool
-agent -> claude: "13. Continue with tool result"
-claude -> agent: "14. Tool call: get_history(contact_id)"
-agent -> mcp: "15. Invoke get_history"
-mcp -> crm: "16. GET /activities"
-crm -> mcp: "17. Activity timeline"
-mcp -> agent: "18. Tool result"
-
-# Final response
-agent -> claude: "19. Continue"
-claude -> agent: "20. Final answer (text)"
-agent -> db: "21. Persist turn + tool calls"
-agent -> ui: "22. Stream response" {
-  style.stroke: "#059669"
-}
-ui -> user: "23. \"Acme moved to Proposal 3 days ago...\""
-
-# Later - user asks for a write action
-user -> ui: "24. \"Mark Acme as closed-won\""
-ui -> agent: "25. Message + user_id"
-agent -> claude: "26. Prompt + tools + memory"
-claude -> agent: "27. Tool call: update_stage(Acme, closed-won)"
-agent -> agent: "28. Detect mutating tool" {
-  style.stroke: "#d97706"
-}
-agent -> mcp: "29. update_stage (draft mode)"
-mcp -> db: "30. Store draft (no CRM write yet)" {
-  style.stroke: "#d97706"
-  style.stroke-dash: 3
-}
-agent -> ui: "31. \"Draft: mark closed-won. Confirm?\"" {
-  style.stroke: "#d97706"
-}
-user -> ui: "32. Click confirm"
-ui -> agent: "33. Commit draft"
-agent -> crm: "34. PATCH /contacts/:id (stage=closed-won)" {
+user -> ui: "1. Mark Acme as closed-won"
+ui -> agent: "2. Message + memory"
+agent -> claude: "3. Prompt + tools"
+claude -> agent: "4. Tool call: update_stage"
+agent -> mcp: "5. Draft update (not committed)"
+mcp -> ui: "6. Confirm this change?"
+user -> ui: "7. Confirm"
+ui -> agent: "8. Commit"
+agent -> crm: "9. PATCH /contacts/:id" {
   style.stroke: "#059669"
   style.bold: true
 }
-agent -> audit: "35. Log commit (user, timestamp, before/after)"
-agent -> ui: "36. \"Done. Acme is now closed-won.\"" {
-  style.stroke: "#059669"
-}
+crm -> user: "10. Acme updated"

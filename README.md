@@ -1,39 +1,44 @@
-# Production Claude Agents with MCP + CRM - Reference Architecture
+<div align="center">
 
-Reference architecture for teams building Claude-powered chatbots that read and write CRM data safely. Demonstrates the pattern that works in production: MCP tools for CRM integration, three layers of memory, confirmation-gated writes, immutable audit log.
+# AI CRM Agent
 
-Built by [Vitalijus Alsauskas / HyperionAI](https://www.linkedin.com/in/vitalijus-hyperion/) as a public reference for firms extending Claude into CRM-aware chatbot territory.
+### Production Claude agents that read and write CRM data safely. MCP tools, three-layer memory, confirmation-gated writes, immutable audit log.
+
+![License](https://img.shields.io/badge/license-MIT-3b82f6)
+![Built by HyperionAI](https://img.shields.io/badge/built_by-HyperionAI-0f172a)
+![Stack](https://img.shields.io/badge/stack-Claude_·_MCP_·_Next.js-64748b)
+
+[View Design Doc (PDF)](DESIGN_DOC.pdf) · [Architecture](docs/architecture.md) · [Implementation Plan](IMPLEMENTATION_PLAN.md)
 
 ---
+
+![Architecture](docs/architecture.svg)
+
+</div>
+
+## What this is
+
+A production pattern for teams extending Claude into CRM-aware chatbot capabilities. Demonstrates how to expose CRM reads and writes as MCP tools, layer memory across session + user + account, and gate every write behind user confirmation.
+
+Claude + CRM chatbots usually fail in two predictable ways: they lose memory across sessions (users re-explain context constantly) or they write to CRM without proper review (surprise records). This reference shows the pattern that works.
 
 ## Why this exists
 
-Claude + CRM chatbots usually fail in two predictable ways:
-- **Memory gap:** the bot remembers this conversation but nothing from last week, so users re-explain context every session
-- **Silent writes:** the bot mutates CRM records without review, users find surprise entries
-
-This reference shows the pattern that works:
-
-1. **MCP tools** - expose CRM capabilities via Model Context Protocol. Swap CRMs without touching the agent.
-2. **Three memory layers** - session (current conversation), user (preferences, recent interactions), account (company-wide context). Composed at prompt time so no one layer has to hold everything.
-3. **Confirmation-gated writes** - every mutating tool goes through a guardrail. Agent drafts, user approves, commit fires. Nothing silently changes.
-4. **Immutable audit log** - every tool call + commit logged to append-only S3 with before/after. Regulatory-grade.
-5. **Isolation per user** - one user cannot see another's memory or audit trail.
-
----
+- **MCP tools** - expose CRM capabilities via Model Context Protocol. Swap CRMs without touching the agent.
+- **Three memory layers** - session (current conversation), user (preferences, recent interactions), account (company-wide context). Composed at prompt time.
+- **Confirmation-gated writes** - every mutating tool goes through a guardrail. Agent drafts, user approves, commit fires. Nothing silently changes.
+- **Immutable audit log** - every tool call + commit logged to append-only S3 with before/after. Regulatory-grade.
+- **Isolation per user** - one user cannot see another's memory or audit trail.
 
 ## Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [docs/architecture.md](docs/architecture.md) | Layered architecture + component responsibilities |
-| [docs/architecture.svg](docs/architecture.svg) | Architecture diagram (rendered) |
-| [docs/flow.svg](docs/flow.svg) | Conversation flow: read path + confirmation-gated write path |
-| [DESIGN_DOC.pdf](DESIGN_DOC.pdf) | Branded design doc with reasoning, tool choices, risks |
-| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Phase-by-phase build plan with milestones and risks |
-| [CLAUDE.md](CLAUDE.md) | Operational rules for Claude Code working in this codebase |
+**[Design Doc (PDF)](DESIGN_DOC.pdf)** — Branded system design with diagrams, tool choices, phases, and risks.
 
----
+**[Architecture](docs/architecture.md)** — Layered view with component responsibilities and design decisions.
+
+**[Implementation Plan](IMPLEMENTATION_PLAN.md)** — 3-phase build plan with milestones and risks.
+
+**[Flow Diagram](docs/flow.svg)** — Sequence diagram of the confirmation-gated write path.
 
 ## Stack
 
@@ -42,15 +47,12 @@ This reference shows the pattern that works:
 | Chat UI | Next.js 15 (App Router, streaming) |
 | Agent Runtime | FastAPI + Anthropic SDK |
 | Tool Layer | Model Context Protocol (MCP) server in Python |
-| Memory | Postgres (session + user + account) + pgvector (long-term semantic) |
-| Audit Log | Immutable S3 bucket (Object Lock) + Postgres mirror |
+| Memory | Postgres (session + user + account) + pgvector |
+| Audit Log | Immutable S3 (Object Lock) + Postgres mirror |
 | CRM | HubSpot / Salesforce / Pipedrive (adapter per backend) |
 | LLM | Anthropic Claude 3.5 Sonnet (zero-retention) |
-| Observability | Sentry |
 
----
-
-## Quick Start (local dev)
+## Quick Start
 
 ```bash
 pnpm install
@@ -58,8 +60,6 @@ docker compose -f docker-compose.local.yml up -d
 cd apps/api && poetry install && poetry run alembic upgrade head && cd ../..
 pnpm dev
 ```
-
----
 
 ## Who this is for
 
@@ -71,14 +71,35 @@ pnpm dev
 
 ---
 
-## About
+<div align="center">
 
-Built by Vitalijus Alsauskas. Ex-IBM (4 years, Fortune 500 clients including AskProcurement, a chatbot integrating Dun & Bradstreet data for procurement teams). Claude Code and MCP are my daily setup - currently running Claude in production on Adboard (Next.js + Supabase + Claude API with OAuth into Meta, Google, Shopify) and Fit7D (FastAPI + Claude dialogue platform).
+## About the author
 
-If you're building this and want a second set of eyes, I offer a free 30-minute scoping call - reach out via LinkedIn or [vitalijus.io](https://vitalijus.io).
+<img src="https://hyperionai.dev/founder.png" width="120" style="border-radius:50%" alt="Vitalijus Alsauskas" />
 
-- GitHub: https://github.com/Vitals9367
-- LinkedIn: https://www.linkedin.com/in/vitalijus-hyperion/
+### Vitalijus Alsauskas
+
+Founder, HyperionAI
+
+[LinkedIn](https://www.linkedin.com/in/vitalijus-hyperion/) · [GitHub](https://github.com/Vitals9367) · [hyperionai.dev](https://hyperionai.dev)
+
+</div>
+
+4 years at IBM on Fortune 500 systems, including AskProcurement (chatbot integrating Dun & Bradstreet data for procurement teams - same pattern as what's in this repo). Claude Code and MCP are my daily setup. Currently running Claude in production on Adboard (Next.js + Supabase + Claude API with OAuth into Meta, Google, Shopify) and Fit7D (FastAPI + Claude dialogue platform).
+
+---
+
+<div align="center">
+
+## Interested in building something like this?
+
+I offer a free 30-minute scoping call for teams extending Claude into CRM territory.
+
+### [Book a call](https://cal.com/vitalijus-alsauskas/project-request?overlayCalendar=true)
+
+or reach out via [LinkedIn](https://www.linkedin.com/in/vitalijus-hyperion/)
+
+</div>
 
 ---
 

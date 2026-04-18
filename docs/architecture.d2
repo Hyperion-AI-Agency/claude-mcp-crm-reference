@@ -1,148 +1,67 @@
-# Claude + MCP + CRM - System Architecture (Layered)
-# Render: d2 --theme 200 --layout elk docs/architecture.d2 docs/architecture.svg
+# AI CRM Agent - Architecture
+# Render: d2 --theme 303 --sketch --pad 120 --scale 1.5 --layout elk
 
 direction: down
 
-title: Production Claude Agents with MCP + CRM - Architecture {
-  near: top-center
-  shape: text
-  style.font-size: 28
-  style.bold: true
+user: "Internal User" {
+  shape: person
 }
 
-# --- Layer 1: Users ---
-users: {
-  label: "Users"
-  style.bold: true
-  grid-columns: 2
-  grid-gap: 40
-
-  internal: "Internal User\n(Sales, CS, Ops)" {
-    shape: person
-  }
-  admin: "Admin\n(Audit + config)" {
-    shape: person
-  }
+ui: Chat UI {
+  style.font-size: 18
 }
 
-# --- Layer 2: Chat Surface ---
-chat: {
-  label: "Chat Surface  -  Next.js + React"
+agent: "Agent Runtime" {
+  style.font-size: 18
   style.bold: true
-  grid-columns: 3
-  grid-gap: 30
 
-  ui: "Chat UI\n(streaming)"
-  confirm: "Confirmation Drawer\n(for writes)"
-  audit_view: "Audit View\n(per-user history)"
+  orchestrator: Claude Orchestrator
+  memory: Memory Manager
+  guard: Write Guardrail
 }
 
-# --- Layer 3: Agent Runtime ---
-agent: {
-  label: "Agent Runtime  -  FastAPI + Anthropic SDK"
+mcp: "MCP Server" {
+  style.font-size: 18
   style.bold: true
-  grid-columns: 3
-  grid-gap: 30
 
-  orchestrator: "Agent Orchestrator\n(tool-use loop)"
-  memory: "Memory Manager\n(session + user + account)"
-  guardrail: "Write Guardrails\n(drafts, not commits)"
+  reads: "Read Tools\n(get, search, history)"
+  writes: "Write Tools\n(confirmation-gated)"
 }
 
-# --- Layer 4: MCP Tool Layer ---
-mcp: {
-  label: "MCP Server  -  exposes CRM as tools"
+data: "Data Layer" {
+  style.font-size: 18
   style.bold: true
-  grid-columns: 5
-  grid-gap: 25
 
-  get_contact: "get_contact"
-  search: "search_contacts"
-  log_activity: "log_activity"
-  update_stage: "update_stage (draft)"
-  get_history: "get_history"
-}
-
-# --- Layer 5: Data ---
-data: {
-  label: "Data Layer"
-  style.bold: true
-  grid-columns: 3
-  grid-gap: 30
-
-  pg: "Postgres\n(memory, audit, drafts)" {
+  memory_db: "Memory + Drafts" {
     shape: cylinder
   }
-  vector: "Vector Store\n(long-term memory)" {
-    shape: cylinder
-  }
-  audit: "Immutable Audit Log\n(every tool call)" {
+  audit: "Immutable Audit Log" {
     shape: cylinder
   }
 }
 
-# --- Layer 6: External ---
-external: {
-  label: "External Services"
+external: "External" {
+  style.font-size: 18
   style.bold: true
-  grid-columns: 3
-  grid-gap: 30
 
-  claude: "Anthropic Claude\n(tool use + memory)" {
+  claude: Anthropic Claude {
     shape: cloud
   }
-  crm: "CRM API\n(HubSpot / Salesforce / Pipedrive)" {
-    shape: cloud
-  }
-  sentry: "Sentry" {
+  crm: CRM API {
     shape: cloud
   }
 }
 
-# --- Connections ---
-
-users.internal -> chat.ui
-users.internal -> chat.confirm
-users.admin -> chat.audit_view
-
-chat.ui -> agent.orchestrator: "Message + user context"
-agent.orchestrator -> agent.memory: "Load session + user"
-agent.memory -> data.pg
-agent.memory -> data.vector
-
-agent.orchestrator -> external.claude: "Prompt + tools schema"
-external.claude -> agent.orchestrator: "Tool calls"
-
-agent.orchestrator -> mcp.get_contact
-agent.orchestrator -> mcp.search
-agent.orchestrator -> mcp.log_activity
-agent.orchestrator -> mcp.update_stage
-agent.orchestrator -> mcp.get_history
-
-mcp.get_contact -> external.crm: "GET /contacts/:id"
-mcp.search -> external.crm: "GET /contacts?q="
-mcp.get_history -> external.crm: "GET /activities"
-mcp.log_activity -> external.crm: "POST /activities" {
-  style.stroke: "#059669"
-}
-
-# Write path goes through guardrail
-mcp.update_stage -> agent.guardrail: "Draft" {
-  style.stroke: "#d97706"
-}
-agent.guardrail -> chat.confirm: "User confirmation required" {
-  style.stroke: "#d97706"
-  style.stroke-dash: 3
-}
-chat.confirm -> external.crm: "Commit on approval" {
-  style.stroke: "#059669"
-  style.bold: true
-}
-
-# Cross-cutting
-agent.orchestrator -> data.audit
-mcp.get_contact -> data.audit
-mcp.update_stage -> data.audit
-agent.orchestrator -> external.sentry: "Errors" {
-  style.stroke-dash: 3
-}
+user -> ui
+ui -> agent.orchestrator
+agent.orchestrator -> agent.memory
+agent.memory -> data.memory_db
+agent.orchestrator -> external.claude: "Prompt + tools"
+agent.orchestrator -> mcp.reads
+agent.orchestrator -> mcp.writes
+agent.orchestrator -> agent.guard
+agent.guard -> ui: "Confirm draft"
+mcp.reads -> external.crm
+mcp.writes -> external.crm: "On user confirm"
+mcp.reads -> data.audit
+mcp.writes -> data.audit
