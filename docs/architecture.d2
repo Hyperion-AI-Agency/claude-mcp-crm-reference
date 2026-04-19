@@ -26,17 +26,32 @@ classes: {
     style.font-size: 13
     style.bold: true
   }
+  hidden: {
+    style.fill: transparent
+    style.stroke: transparent
+  }
 }
 
-# Row 0: user | app | (empty spacer)
-# Row 1: data | agent | integrations
-user_slot: "" {
-  style.fill: transparent
-  style.stroke: transparent
+# 3x3 hub-and-spoke layout. app_zone at dead center [1,1].
+# Row 0: _    | user  | _
+# Row 1: data | app   | integrations
+# Row 2: _    | agent | _
 
+spacer_tl: "" { class: hidden }
+
+user_slot: "" { class: hidden
   user: Internal User {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
+  }
+}
+
+spacer_tr: "" { class: hidden }
+
+data_zone: "Data" {
+  db: Postgres + pgvector {
+    class: card
+    icon: https://cdn.simpleicons.org/postgresql
   }
 }
 
@@ -54,17 +69,21 @@ app_zone: "App" {
   }
 }
 
-spacer_1: "" {
-  style.fill: transparent
-  style.stroke: transparent
-}
+integrations_zone: "3rd Party Integrations" {
+  grid-columns: 2
+  grid-gap: 30
 
-data_zone: "Data" {
-  db: Postgres + pgvector {
+  claude: Claude API {
     class: card
-    icon: https://cdn.simpleicons.org/postgresql
+    icon: https://cdn.simpleicons.org/anthropic
+  }
+  crm: HubSpot / Salesforce {
+    class: card
+    icon: https://cdn.simpleicons.org/hubspot
   }
 }
+
+spacer_bl: "" { class: hidden }
 
 agent_zone: "Agent Runtime" {
   grid-columns: 3
@@ -84,19 +103,7 @@ agent_zone: "Agent Runtime" {
   }
 }
 
-integrations_zone: "3rd Party Integrations" {
-  grid-columns: 2
-  grid-gap: 30
-
-  claude: Claude API {
-    class: card
-    icon: https://cdn.simpleicons.org/anthropic
-  }
-  crm: HubSpot / Salesforce {
-    class: card
-    icon: https://cdn.simpleicons.org/hubspot
-  }
-}
+spacer_br: "" { class: hidden }
 
 user_slot.user -> app_zone.ui: "1. Message"
 app_zone.ui -> app_zone.orchestrator: "2. Request"
