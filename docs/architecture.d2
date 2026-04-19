@@ -49,7 +49,7 @@ user_slot: "" { class: hidden
 spacer_tr: "" { class: hidden }
 
 data_zone: "Data" {
-  db: Postgres + pgvector {
+  db: Postgres {
     class: card
     icon: https://cdn.simpleicons.org/postgresql
   }
@@ -59,27 +59,31 @@ app_zone: "App" {
   grid-columns: 2
   grid-gap: 80
 
-  ui: Next.js Chat UI {
+  ui: Next.js Frontend {
     class: card
     icon: https://cdn.simpleicons.org/nextdotjs
   }
-  orchestrator: FastAPI Orchestrator {
+  orchestrator: FastAPI Backend {
     class: card
     icon: https://cdn.simpleicons.org/fastapi
   }
 }
 
 integrations_zone: "3rd Party Integrations" {
-  grid-columns: 2
+  grid-columns: 3
   grid-gap: 80
 
   claude: Claude API {
     class: card
     icon: https://cdn.simpleicons.org/anthropic
   }
-  crm: HubSpot / Salesforce {
+  hubspot: HubSpot {
     class: card
     icon: https://cdn.simpleicons.org/hubspot
+  }
+  salesforce: Salesforce {
+    class: card
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/cloud.svg
   }
 }
 
@@ -111,8 +115,13 @@ app_zone.orchestrator -> data_zone.db: "3. Load session"
 app_zone.orchestrator -> agent_zone.memory: "4. Build context"
 app_zone.orchestrator -> agent_zone.reads: "5. Fetch"
 app_zone.orchestrator -> agent_zone.writes: "6. Mutate"
-agent_zone.reads -> integrations_zone.crm: "7. Read CRM"
-agent_zone.writes -> integrations_zone.crm: "8. Commit write" {
+agent_zone.reads -> integrations_zone.hubspot: "7a. Read"
+agent_zone.reads -> integrations_zone.salesforce: "7b. Read"
+agent_zone.writes -> integrations_zone.hubspot: "8a. Commit" {
+  style.stroke: "#059669"
+  style.bold: true
+}
+agent_zone.writes -> integrations_zone.salesforce: "8b. Commit" {
   style.stroke: "#059669"
   style.bold: true
 }
