@@ -28,7 +28,7 @@ classes: {
   }
 }
 
-# Entry point - outside the system
+# Order controls grid position. app_zone at position 1 = top-center.
 user: Internal User {
   class: card
   icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
@@ -42,9 +42,9 @@ app_zone: "App" {
     class: card
     icon: https://cdn.simpleicons.org/nextdotjs
   }
-  orchestrator: FastAPI + Claude {
+  orchestrator: FastAPI Orchestrator {
     class: card
-    icon: https://cdn.simpleicons.org/anthropic
+    icon: https://cdn.simpleicons.org/fastapi
   }
 }
 
@@ -74,6 +74,13 @@ data_zone: "Data" {
 }
 
 integrations_zone: "3rd Party Integrations" {
+  grid-columns: 2
+  grid-gap: 30
+
+  claude: Claude API {
+    class: card
+    icon: https://cdn.simpleicons.org/anthropic
+  }
   crm: HubSpot / Salesforce {
     class: card
     icon: https://cdn.simpleicons.org/hubspot
@@ -82,13 +89,16 @@ integrations_zone: "3rd Party Integrations" {
 
 user -> app_zone.ui: "1. Message"
 app_zone.ui -> app_zone.orchestrator: "2. Request"
-app_zone.orchestrator -> agent_zone.memory: "3. Load context"
-agent_zone.memory -> data_zone.db: "4. Session state"
-app_zone.orchestrator -> agent_zone.reads: "5. Fetch"
-agent_zone.reads -> integrations_zone.crm: "6. Read CRM"
-app_zone.orchestrator -> agent_zone.writes: "7. Mutate"
-agent_zone.writes -> app_zone.ui: "8. Confirm?"
-agent_zone.writes -> integrations_zone.crm: "9. On confirm" {
+app_zone.orchestrator -> integrations_zone.claude: "3. LLM call" {
+  style.stroke-dash: 3
+}
+app_zone.orchestrator -> agent_zone.memory: "4. Load context"
+agent_zone.memory -> data_zone.db: "5. Session state"
+app_zone.orchestrator -> agent_zone.reads: "6. Fetch"
+agent_zone.reads -> integrations_zone.crm: "7. Read CRM"
+app_zone.orchestrator -> agent_zone.writes: "8. Mutate"
+agent_zone.writes -> app_zone.ui: "9. Confirm?"
+agent_zone.writes -> integrations_zone.crm: "10. On confirm" {
   style.stroke: "#059669"
   style.bold: true
 }
