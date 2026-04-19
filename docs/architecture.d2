@@ -41,9 +41,9 @@ client_zone: "Client" {
   }
 }
 
-agent_zone: "Agent Runtime" {
+agent_core_zone: "Agent Core" {
   grid-columns: 2
-  grid-gap: 40
+  grid-gap: 30
 
   orchestrator: Claude Orchestrator {
     class: card
@@ -53,11 +53,17 @@ agent_zone: "Agent Runtime" {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/brain.svg
   }
-  reads: MCP Read Tools {
+}
+
+mcp_zone: "MCP Tool Layer" {
+  grid-columns: 2
+  grid-gap: 30
+
+  reads: Read Tools {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/eye.svg
   }
-  writes: MCP Write Guardrail {
+  writes: Write Guardrail {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/shield-check.svg
   }
@@ -70,22 +76,22 @@ data_zone: "Data" {
   }
 }
 
-external_zone: "CRM" {
+integrations_zone: "3rd Party Integrations" {
   crm: HubSpot / Salesforce {
     class: card
     icon: https://cdn.simpleicons.org/hubspot
   }
 }
 
+# Clean flow: orchestrator routes through mcp_zone, writes confirm via ui before commit
 user -> client_zone.ui: "1. Message"
-client_zone.ui -> agent_zone.orchestrator: "2. Request"
-agent_zone.orchestrator -> agent_zone.memory: "3. Load context"
-agent_zone.memory -> data_zone.db: "4. Session state"
-agent_zone.orchestrator -> agent_zone.reads: "5. Fetch tool"
-agent_zone.reads -> external_zone.crm: "6. GET /contacts"
-agent_zone.orchestrator -> agent_zone.writes: "7. Mutate tool"
-agent_zone.writes -> client_zone.ui: "8. Confirm?"
-agent_zone.writes -> external_zone.crm: "9. On confirm" {
+client_zone.ui -> agent_core_zone.orchestrator: "2. Request"
+agent_core_zone.orchestrator -> agent_core_zone.memory: "3. Load context"
+agent_core_zone.memory -> data_zone.db: "4. Session state"
+agent_core_zone.orchestrator -> mcp_zone: "5. Tool call"
+mcp_zone.reads -> integrations_zone.crm: "6. Read CRM"
+mcp_zone.writes -> client_zone.ui: "7. Confirm change?"
+mcp_zone.writes -> integrations_zone.crm: "8. On confirm" {
   style.stroke: "#059669"
   style.bold: true
 }
