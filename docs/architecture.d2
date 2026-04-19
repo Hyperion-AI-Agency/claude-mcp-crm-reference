@@ -9,7 +9,7 @@ vars: {
 
 direction: right
 grid-columns: 3
-grid-gap: 60
+grid-gap: 120
 
 classes: {
   card: {
@@ -28,7 +28,7 @@ classes: {
   }
 }
 
-# Order controls grid position. app_zone at position 1 = top-center.
+# app_zone at position [0,1] = top-center.
 user: Internal User {
   class: card
   icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
@@ -36,7 +36,7 @@ user: Internal User {
 
 app_zone: "App" {
   grid-columns: 2
-  grid-gap: 30
+  grid-gap: 80
 
   ui: Next.js Chat UI {
     class: card
@@ -50,7 +50,7 @@ app_zone: "App" {
 
 agent_zone: "Agent Runtime" {
   grid-columns: 3
-  grid-gap: 30
+  grid-gap: 80
 
   memory: Memory Manager {
     class: card
@@ -75,7 +75,7 @@ data_zone: "Data" {
 
 integrations_zone: "3rd Party Integrations" {
   grid-columns: 2
-  grid-gap: 30
+  grid-gap: 80
 
   claude: Claude API {
     class: card
@@ -87,18 +87,16 @@ integrations_zone: "3rd Party Integrations" {
   }
 }
 
+# L-to-R flow: user -> app -> agent -> data/integrations
 user -> app_zone.ui: "1. Message"
 app_zone.ui -> app_zone.orchestrator: "2. Request"
-app_zone.orchestrator -> integrations_zone.claude: "3. LLM call" {
-  style.stroke-dash: 3
-}
-app_zone.orchestrator -> agent_zone.memory: "4. Load context"
-agent_zone.memory -> data_zone.db: "5. Session state"
-app_zone.orchestrator -> agent_zone.reads: "6. Fetch"
-agent_zone.reads -> integrations_zone.crm: "7. Read CRM"
-app_zone.orchestrator -> agent_zone.writes: "8. Mutate"
-agent_zone.writes -> app_zone.ui: "9. Confirm?"
-agent_zone.writes -> integrations_zone.crm: "10. On confirm" {
+app_zone.orchestrator -> agent_zone: "3. Load + tool calls"
+agent_zone.memory -> data_zone.db: "4. Session state"
+agent_zone.reads -> integrations_zone.crm: "5. Read CRM"
+agent_zone.writes -> integrations_zone.crm: "6. Commit write" {
   style.stroke: "#059669"
   style.bold: true
+}
+app_zone.orchestrator -> integrations_zone.claude: "ext. LLM call" {
+  style.stroke-dash: 3
 }
