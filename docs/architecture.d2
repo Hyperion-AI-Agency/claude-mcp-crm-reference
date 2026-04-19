@@ -52,6 +52,13 @@ app_zone: "App" {
   }
 }
 
+data_zone: "Data" {
+  db: Postgres + pgvector {
+    class: card
+    icon: https://cdn.simpleicons.org/postgresql
+  }
+}
+
 agent_zone: "Agent Runtime" {
   grid-columns: 3
   grid-gap: 30
@@ -70,13 +77,6 @@ agent_zone: "Agent Runtime" {
   }
 }
 
-data_zone: "Data" {
-  db: Postgres + pgvector {
-    class: card
-    icon: https://cdn.simpleicons.org/postgresql
-  }
-}
-
 integrations_zone: "3rd Party Integrations" {
   grid-columns: 2
   grid-gap: 30
@@ -91,7 +91,18 @@ integrations_zone: "3rd Party Integrations" {
   }
 }
 
-user_slot.user -> app_zone: "1. Message"
-app_zone -> agent_zone: "2. Tool call"
-agent_zone -> data_zone: "3. Memory"
-agent_zone -> integrations_zone: "4. Read/Write"
+# FastAPI orchestrator reads/writes data directly (session state) + delegates tool calls to agent runtime.
+user_slot.user -> app_zone.ui: "1. Message"
+app_zone.ui -> app_zone.orchestrator: "2. Request"
+app_zone.orchestrator -> data_zone.db: "3. Load session"
+app_zone.orchestrator -> agent_zone.memory: "4. Build context"
+app_zone.orchestrator -> agent_zone.reads: "5. Fetch"
+app_zone.orchestrator -> agent_zone.writes: "6. Mutate"
+agent_zone.reads -> integrations_zone.crm: "7. Read CRM"
+agent_zone.writes -> integrations_zone.crm: "8. Commit write" {
+  style.stroke: "#059669"
+  style.bold: true
+}
+app_zone.orchestrator -> integrations_zone.claude: "LLM call" {
+  style.stroke-dash: 3
+}
